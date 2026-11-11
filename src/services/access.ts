@@ -18,7 +18,7 @@ export class AccessService {
     await this.profiles.save({ ...input, name: input.name.trim() })
   }
   async createUser(input: NewUserInput): Promise<void> {
-    validateProfile(input)
+    validateProfile(input, 'create')
     await this.profiles.create({ ...input, name: input.name.trim(), email: input.email.trim() })
   }
 }

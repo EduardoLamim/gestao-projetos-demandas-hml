@@ -10,7 +10,7 @@ export interface ProvisionPort {
 
 export async function provisionUser(input: NewUserInput, port: ProvisionPort): Promise<void> {
   if (!await port.isActiveAdmin()) throw new Error('Forbidden')
-  validateProfile(input)
+  validateProfile(input, 'create')
   const subject = await port.createIdentity(input.email.trim(), input.password)
   try { await port.saveProfile(subject, input) }
   catch {

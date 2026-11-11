@@ -23,13 +23,20 @@ export interface ProfilesRepository {
 }
 export type NewUserInput = Omit<ProfileInput, 'auth_subject' | 'expected_updated_at'> & { email: string; password: string }
 
-export function validateProfile(input: ProfileInput | NewUserInput): void {
-  if (!input.name.trim() || input.name.trim().length > 120) throw new Error('Informe um nome de até 120 caracteres.')
-  if ('auth_subject' in input && !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(input.auth_subject)) throw new Error('Informe o identificador válido do usuário autenticado.')
-  if ('email' in input && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email) || input.email.length > 254 || input.password.length < 12 || new TextEncoder().encode(input.password).length > 72)) throw new Error('Informe e-mail válido e senha de pelo menos 12 caracteres e até 72 bytes.')
+export function validateProfile(input: ProfileInput | NewUserInput, operation: 'edit' | 'create' = 'edit'): void {
+  if (!input || typeof input !== 'object') throw new Error('Dados do usuário incompletos.')
+  if (typeof input.name !== 'string' || !input.name.trim() || input.name.trim().length > 120) throw new Error('Informe um nome de até 120 caracteres.')
+  if (operation === 'edit') {
+    if (!('auth_subject' in input) || typeof input.auth_subject !== 'string' || !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(input.auth_subject)) throw new Error('Informe o identificador válido do usuário autenticado.')
+    if (!('expected_updated_at' in input) || typeof input.expected_updated_at !== 'string' || !Number.isFinite(Date.parse(input.expected_updated_at))) throw new Error('Versão do usuário ausente ou inválida. Recarregue antes de salvar.')
+  } else {
+    if (!('email' in input) || typeof input.email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email) || input.email.length > 254 || !('password' in input) || typeof input.password !== 'string' || input.password.length < 12 || new TextEncoder().encode(input.password).length > 72) throw new Error('Informe e-mail válido e senha de pelo menos 12 caracteres e até 72 bytes.')
+  }
   if (!roles.includes(input.role)) throw new Error('Perfil inválido.')
+  if (typeof input.active !== 'boolean' || typeof input.participates_daily !== 'boolean') throw new Error('Informe o acesso ativo e a participação nas Dailies.')
+  if (!Array.isArray(input.periods) || input.periods.length > 28) throw new Error('Informe uma lista de até 28 períodos de expediente.')
   for (const period of input.periods) {
-    if (!Number.isInteger(period.weekday) || period.weekday < 0 || period.weekday > 6 ||
+    if (!period || typeof period.starts_at !== 'string' || typeof period.ends_at !== 'string' || !Number.isInteger(period.weekday) || period.weekday < 0 || period.weekday > 6 ||
       !/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(period.starts_at) || !/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(period.ends_at) ||
       period.starts_at.slice(0, 5) >= period.ends_at.slice(0, 5)) throw new Error('Revise os dias e horários de expediente.')
   }

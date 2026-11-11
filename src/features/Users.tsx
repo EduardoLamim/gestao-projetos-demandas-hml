@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { roleLabels, roles } from '../domain/auth'
+import { roleLabels, roles, validateProfile } from '../domain/auth'
 import type { Profile, ProfileInput, Role } from '../domain/auth'
 import type { AccessService } from '../services/access'
 
@@ -18,7 +18,12 @@ export function Users({ access }: { access: AccessService }) {
   useEffect(() => { let cancelled = false; access.profiles.list().then(data => { if (!cancelled) setUsers(data) }).catch(() => { if (!cancelled) setError('Não foi possível carregar os usuários.') }); return () => { cancelled = true } }, [access])
   async function edit(user: Profile) {
     setBusy(true); setError(''); setNotice('')
-    try { const periods = await access.profiles.periods(user.id); setDraft({ ...user, periods, expected_updated_at: user.updated_at }) } catch { setError('Não foi possível carregar o expediente.') } finally { setBusy(false) }
+    try {
+      const periods = await access.profiles.periods(user.id)
+      const next: ProfileInput = { auth_subject: user.auth_subject, name: user.name, role: user.role, active: user.active, participates_daily: user.participates_daily, periods, expected_updated_at: user.updated_at }
+      validateProfile(next)
+      setDraft(next)
+    } catch { setError('Não foi possível carregar os dados completos do usuário e seu expediente. Recarregue e tente novamente.') } finally { setBusy(false) }
   }
   async function save(event: FormEvent) {
     event.preventDefault(); if (!draft) return

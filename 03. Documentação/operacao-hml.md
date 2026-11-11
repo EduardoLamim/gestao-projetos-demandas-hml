@@ -51,6 +51,14 @@ Migrations e função devem estar aplicadas antes da publicação correspondente
 7. Testar edição concorrente e sobreposição de horários: falha explícita sem descartar dados persistidos.
 8. Conferir auditoria e resultado dos testes. Não declarar aceite sem confirmação do solicitante.
 
+## Correção da edição de usuários — 11/11/2026
+
+Reprodução automatizada antes da correção: `TypeError: Cannot read properties of undefined (reading 'length')`, em `validateProfile (src/domain/auth.ts:29:122)`, chamado por `AccessService.saveProfile (src/services/access.ts:17:5)`. `Users.edit` copiava o perfil completo, incluindo e-mail; a validação inferia cadastro novo pela presença de `email` e acessava uma senha inexistente. A execução parava antes do adaptador/RPC, sem relação com a resposta de `save_profile`.
+
+Criação agora é uma operação explícita na validação; edição não exige senha. O formulário seleciona apenas campos editáveis e valida o carregamento antes de renderizar. Dados incompletos, expediente malformado e versão ausente são rejeitados antes da persistência. UUID e timestamp de concorrência são mantidos; adaptador, migrations, RLS e auditoria não foram alterados.
+
+Regressões cobrem edição de Administrador, ativação/desativação de Operador, alteração de expediente, payload incompleto e criação sem senha. E2E desktop/mobile percorrem formulário → serviço → adaptador com transporte simulado e verificam os parâmetros da RPC. PostgreSQL local e suíte SQL remota verificam autorização, concorrência e proteção contra retirada do próprio acesso administrativo. Não foram editados usuários reais para reproduzir o bug; o aceite da correção depende de repetir a homologação no Pages.
+
 ## Ferramentas locais
 
 RTK por invocação explícita. Graphify gerado com `graphify extract . --code-only --no-cluster --max-workers 2`, sem LLM; grafo ignorado no Git. Consultar somente o arquivo absoluto deste checkout. Após mudanças, regenerar; o grafo não substitui o código atual.

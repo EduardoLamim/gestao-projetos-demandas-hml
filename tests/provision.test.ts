@@ -12,6 +12,11 @@ it('rejeita senha curta antes de criar identidade', async () => {
   await expect(provisionUser({ ...input, password: 'short' }, p)).rejects.toThrow()
   expect(p.createIdentity).not.toHaveBeenCalled()
 })
+it('rejeita senha ausente com erro de validação, sem criar identidade', async () => {
+  const p = port()
+  await expect(provisionUser({ ...input, password: undefined } as unknown as typeof input, p)).rejects.toThrow('senha')
+  expect(p.createIdentity).not.toHaveBeenCalled()
+})
 it('compensa exclusivamente identidade recém-criada se SQL falhar', async () => {
   const p = port(); p.saveProfile.mockRejectedValue(new Error('failure'))
   await expect(provisionUser(input, p)).rejects.toThrow('Profile provisioning failed')

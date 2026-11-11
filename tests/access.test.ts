@@ -27,7 +27,7 @@ describe('configuração e serviços', () => {
     expect(profiles.current).not.toHaveBeenCalled()
   })
   it('rejeita sobreposição de expediente e aceita jornada parcial', () => {
-    const input = { auth_subject: '00000000-0000-4000-8000-000000000001', name: 'Teste', role: 'operador' as const, active: true, participates_daily: true, expected_updated_at: null, periods: [{ weekday: 1, starts_at: '08:00', ends_at: '12:00' }] }
+    const input = { auth_subject: '00000000-0000-4000-8000-000000000001', name: 'Teste', role: 'operador' as const, active: true, participates_daily: true, expected_updated_at: '2026-11-11T12:00:00Z', periods: [{ weekday: 1, starts_at: '08:00', ends_at: '12:00' }] }
     expect(() => validateProfile(input)).not.toThrow()
     expect(() => validateProfile({ ...input, periods: [...input.periods, { weekday: 1, starts_at: '11:00', ends_at: '13:00' }] })).toThrow('sobrepor')
   })
