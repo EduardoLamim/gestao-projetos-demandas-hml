@@ -64,4 +64,5 @@ Ponytail full está ativo; a nova sessão confirmou `CLAUDE_PROJECT_DIR` apontan
 - Suíte SQL remota passou para anônimo, Operador, Gestão, inativo, Administrador, escalonamento e proteção da auditoria, com rollback das fixtures.
 - Execução direta de `public.rls_auto_enable()` negada a `anon` e `authenticated`, preservando o event trigger da plataforma.
 - Validação local: 20 testes de domínio/segurança/publicação e 8 E2E simulados; lint, tipos e build aprovados. Auditoria npm sem vulnerabilidades no momento da verificação.
+- CI Linux do commit `eed40a3` aprovado: [execução 43013689831](https://github.com/EduardoLamim/gestao-projetos-demandas-hml/actions/runs/43013689831). GitHub Pages usa publicação por Actions; Environment `hml` contém somente a chave pública e `HML_SECURITY_VERIFIED=false`.
 - Primeiro Administrador, login real e aceite humano ainda são pendências; publicação não está liberada por estas evidências isoladas.
