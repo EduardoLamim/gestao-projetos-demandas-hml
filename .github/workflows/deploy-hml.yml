@@ -1,0 +1,48 @@
+name: Publicar HML
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pages-hml
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.repository == 'EduardoLamim/gestao-projetos-demandas-hml' && github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/ci.yml
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: hml
+    env:
+      VITE_APP_ENV: hml
+      VITE_BASE_PATH: /gestao-projetos-demandas-hml/
+      VITE_SUPABASE_URL: https://bzuuckljgtaqtdrlpamf.supabase.co
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY }}
+      HML_SECURITY_VERIFIED: ${{ vars.HML_SECURITY_VERIFIED }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Verificar liberação e exposição anônima
+        run: node scripts/check-hml.mjs
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar artefato HML
+        id: deployment
+        uses: actions/deploy-pages@v4
